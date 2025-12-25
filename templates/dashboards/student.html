@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Dashboard</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <span class="navbar-brand">Attendance Management System</span>
+        <span class="navbar-text text-white">
+            {{ user.first_name }} {{ user.last_name }}
+        </span>
+    </div>
+</nav>
+
+<div class="container mt-5">
+
+    <!-- Page Title -->
+    <h2 class="mb-4 text-center">Student Dashboard</h2>
+
+    <!-- Student Info -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Student Information</h5>
+            <hr>
+            <p><strong>Full Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+            <p>
+                <strong>Attendance Rate:</strong>
+                <span class="badge bg-success fs-6">
+                    {{ attendance_rate }} %
+                </span>
+            </p>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row text-center mb-4">
+        <div class="col-md-4">
+            <div class="card border-primary shadow">
+                <div class="card-body">
+                    <h6 class="card-title">Total Sessions</h6>
+                    <h3 class="text-primary">{{ total_sessions }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-success shadow">
+                <div class="card-body">
+                    <h6 class="card-title">Present</h6>
+                    <h3 class="text-success">{{ present_count }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-danger shadow">
+                <div class="card-body">
+                    <h6 class="card-title">Absent</h6>
+                    <h3 class="text-danger">{{ absent_count }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Table -->
+    <div class="card shadow">
+        <div class="card-header bg-dark text-white">
+            Attendance Details
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-striped table-hover mb-0 text-center">
+                <thead class="table-secondary">
+                    <tr>
+                        <th>Module</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in attendance %}
+                        <tr>
+                            <td>{{ record.session.classmodule.module.name }}</td>
+                            <td>{{ record.session.date }}</td>
+                            <td>
+                                {% if record.status == 'present' %}
+                                    <span class="badge bg-success">Present</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Absent</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-muted py-4">
+                                No attendance data available
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
