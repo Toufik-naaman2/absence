@@ -11,7 +11,6 @@ def role_required(allowed_roles):
         return _wrapped_view
     return decorator
 
-# Special decorators for each role
 admin_required = role_required(['admin'])
 teacher_required = role_required(['teacher'])
 student_required = role_required(['student'])

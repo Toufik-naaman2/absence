@@ -1,14 +1,13 @@
-from django.contrib.auth.decorators import login_required
-from .decorators import admin_required, teacher_required, student_required
-
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 
-from .forms import ClassForm
-from config.models import AbsencePresence, Student ,Seance
-from django.shortcuts import get_object_or_404
-from config.models import AbsencePresence
+from .decorators import admin_required, teacher_required, student_required
+from .forms import CreateUserForm
+
+from config.models import AbsencePresence, Student, Seance
+
 
 def login_view(request):
     if request.method == 'POST':
@@ -22,13 +21,10 @@ def login_view(request):
 
             if user.role == 'admin':
                 return redirect('admin_dashboard')
-
             elif user.role == 'teacher':
                 return redirect('teacher_dashboard')
-
             elif user.role == 'student':
                 return redirect('student_dashboard')
-
         else:
             messages.error(request, "Invalid username or password")
 
@@ -42,6 +38,13 @@ from .forms import CreateUserForm
 @login_required
 @admin_required
 def admin_dashboard(request):
+    return render(request, 'dashboards/admin.html', {
+        'user': request.user
+    })
+
+@login_required
+@admin_required
+def create_user(request):
     if request.method == 'POST':
         form = CreateUserForm(request.POST)
         if form.is_valid():
@@ -51,7 +54,7 @@ def admin_dashboard(request):
     else:
         form = CreateUserForm()
 
-    return render(request, 'dashboards/admin.html', {
+    return render(request, 'dashboards/create_user.html', {
         'form': form
     })
 
@@ -86,6 +89,7 @@ def teacher_dashboard(request):
 
 
 
+
 from config.models import AbsencePresence
 
 @login_required
@@ -99,10 +103,7 @@ def student_dashboard(request):
     present_count = attendance_qs.filter(status='present').count()
     absent_count = attendance_qs.filter(status='absent').count()
 
-    if total_sessions > 0:
-        attendance_rate = round((present_count / total_sessions) * 100, 2)
-    else:
-        attendance_rate = 0
+    attendance_rate = round((present_count / total_sessions) * 100, 2) if total_sessions > 0 else 0
 
     return render(request, 'dashboards/student.html', {
         'user': request.user,
@@ -121,28 +122,35 @@ def student_dashboard(request):
 
 
 
+
 @login_required
 @teacher_required
 def mark_attendance(request, session_id):
-    session = get_object_or_404(Seance, id=session_id, classmodule__teacher=request.user.teacher)
-    students = Student.objects.filter(class_obj=session.classmodule.class_obj)
+    session = get_object_or_404(
+        Seance,
+        id=session_id,
+        classmodule__teacher=request.user.teacher
+    )
 
+    students = Student.objects.filter(
+        class_obj=session.classmodule.class_obj
+    )
 
     if request.method == 'POST':
         for student in students:
-            status = request.POST.get(f'status_{student.id}', 'absent')  # Get status from form
+            status = request.POST.get(f'status_{student.id}', 'absent')
             AbsencePresence.objects.update_or_create(
                 student=student,
                 session=session,
                 defaults={'status': status}
             )
-        # Redirect back to teacher dashboard after saving
         return redirect('teacher_dashboard')
 
     return render(request, 'dashboards/mark_attendance.html', {
         'session': session,
         'students': students,
     })
+
 
 
 
